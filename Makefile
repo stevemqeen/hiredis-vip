@@ -16,11 +16,13 @@ HIREDIS_VIP_PATCH=$(shell grep HIREDIS_VIP_PATCH hircluster.h | awk '{print $$3}
 # Installation related variables and target
 PREFIX?=/usr/local
 INCLUDE_PATH?=include/hiredis-vip
+INCLUDE_HIREDIS_PATH?=include/hiredis-vip/lib/hiredis
 LIBRARY_PATH?=lib
 PKGCONF_PATH?=pkgconfig
 INSTALL_INCLUDE_PATH= $(DESTDIR)$(PREFIX)/$(INCLUDE_PATH)
 INSTALL_LIBRARY_PATH= $(DESTDIR)$(PREFIX)/$(LIBRARY_PATH)
 INSTALL_PKGCONF_PATH= $(INSTALL_LIBRARY_PATH)/$(PKGCONF_PATH)
+INSTALL_INCLUDE_HPATH= $(DESTDIR)$(PREFIX)/$(INCLUDE_HIREDIS_PATH)
 
 # redis-server configuration used for testing
 REDIS_PORT=56379
@@ -161,8 +163,9 @@ $(PKGCONFNAME): lib/hiredis/hiredis.h
 	@echo Cflags: -I\$${includedir} -D_FILE_OFFSET_BITS=64 >> $@
 
 install: $(DYLIBNAME) $(STLIBNAME) $(PKGCONFNAME)
-	mkdir -p $(INSTALL_INCLUDE_PATH) $(INSTALL_LIBRARY_PATH)
-	$(INSTALL) lib/hiredis/hiredis.h lib/hiredis/async.h lib/hiredis/read.h lib/hiredis/sds.h hiutil.h hiarray.h lib/hiredis/dict.h lib/hiredis/dict.c adlist.h lib/hiredis/fmacros.h hircluster.h lib/hiredis/adapters $(INSTALL_INCLUDE_PATH)
+	mkdir -p $(INSTALL_INCLUDE_PATH) $(INSTALL_INCLUDE_HPATH) $(INSTALL_LIBRARY_PATH)
+	$(INSTALL) hiutil.h hiarray.h adlist.h hircluster.h $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) lib/hiredis/alloc.h lib/hiredis/hiredis.h lib/hiredis/async.h lib/hiredis/read.h lib/hiredis/sds.h lib/hiredis/dict.h lib/hiredis/dict.c lib/hiredis/fmacros.h lib/hiredis/adapters $(INSTALL_INCLUDE_HPATH)
 	$(INSTALL) $(DYLIBNAME) $(INSTALL_LIBRARY_PATH)/$(DYLIB_MINOR_NAME)
 	cd $(INSTALL_LIBRARY_PATH) && ln -sf $(DYLIB_MINOR_NAME) $(DYLIB_MAJOR_NAME)
 	cd $(INSTALL_LIBRARY_PATH) && ln -sf $(DYLIB_MAJOR_NAME) $(DYLIBNAME)
