@@ -3736,16 +3736,6 @@ static void cluster_async_data_free(cluster_async_data *cad)
     cad = NULL;
 }
 
-static void unlinkAsyncContextAndNode(redisAsyncContext* ac)
-{
-    cluster_node *node;
-
-    if (ac->data) {
-        node = (cluster_node *)(ac->data);
-        node->acon = NULL;
-    }
-}
-
 redisAsyncContext * actx_get_by_node(redisClusterAsyncContext *acc, 
     cluster_node *node)
 {
