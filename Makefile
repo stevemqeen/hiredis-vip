@@ -162,7 +162,7 @@ $(PKGCONFNAME): lib/hiredis/hiredis.h
 
 install: $(DYLIBNAME) $(STLIBNAME) $(PKGCONFNAME)
 	mkdir -p $(INSTALL_INCLUDE_PATH) $(INSTALL_LIBRARY_PATH)
-	$(INSTALL) lib/hiredis/hiredis.h async.h read.h sds.h hiutil.h hiarray.h dict.h dict.c adlist.h fmacros.h hircluster.h adapters $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) lib/hiredis/hiredis.h lib/hiredis/async.h lib/hiredis/read.h lib/hiredis/sds.h hiutil.h hiarray.h lib/hiredis/dict.h lib/hiredis/dict.c adlist.h lib/hiredis/fmacros.h hircluster.h lib/hiredis/adapters $(INSTALL_INCLUDE_PATH)
 	$(INSTALL) $(DYLIBNAME) $(INSTALL_LIBRARY_PATH)/$(DYLIB_MINOR_NAME)
 	cd $(INSTALL_LIBRARY_PATH) && ln -sf $(DYLIB_MINOR_NAME) $(DYLIB_MAJOR_NAME)
 	cd $(INSTALL_LIBRARY_PATH) && ln -sf $(DYLIB_MAJOR_NAME) $(DYLIBNAME)
