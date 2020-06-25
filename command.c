@@ -940,6 +940,8 @@ redis_parse_cmd(struct cmd *r)
                     break;
                 }
 
+                break;
+
             case 11:
                 if (str11icmp(m, 'i', 'n', 'c', 'r', 'b', 'y', 'f', 'l', 'o', 'a', 't')) {
                     r->type = CMD_REQ_REDIS_INCRBYFLOAT;
@@ -1665,7 +1667,7 @@ void command_destroy(struct cmd *command)
 
     if(command->cmd != NULL)
     {
-        free(command->cmd);
+        hi_free(command->cmd);
     }
 
     if(command->errstr != NULL){

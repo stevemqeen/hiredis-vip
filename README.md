@@ -1,4 +1,28 @@
 
+# What have changed in this version
+Removed old hiredis library files and added hiredis as submodule
+
+Changed Makefile to use submodule files when running make
+
+Fixed some warnings for GCC 9.3.0
+
+# How to build
+Initialize submodule first:
+```c
+	git submodule update --init
+```
+
+Run make for submodule:
+```c
+	cd lib/hiredis
+	make
+```
+
+Build hiredis-vip:
+```c
+	make
+```
+
 # HIREDIS-VIP
 
 Hiredis-vip is a C client library for the [Redis](http://redis.io/) database.

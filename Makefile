@@ -3,7 +3,7 @@
 # Copyright (C) 2010-2011 Pieter Noordhuis <pcnoordhuis at gmail dot com>
 # This file is released under the BSD license, see the COPYING file
 
-OBJ=net.o hiredis.o sds.o async.o read.o hiarray.o hiutil.o command.o crc16.o adlist.o hircluster.o
+OBJ=lib/hiredis/alloc.o lib/hiredis/net.o lib/hiredis/hiredis.o lib/hiredis/sds.o lib/hiredis/async.o lib/hiredis/read.o lib/hiredis/sockcompat.o hiarray.o hiutil.o command.o crc16.o adlist.o hircluster.o
 EXAMPLES=hiredis-example hiredis-example-libevent hiredis-example-libev hiredis-example-glib
 TESTS=hiredis-test
 LIBNAME=libhiredis_vip
@@ -70,18 +70,11 @@ all: $(DYLIBNAME) $(STLIBNAME) hiredis-test $(PKGCONFNAME)
 # Deps (use make dep to generate this)
 
 adlist.o: adlist.c adlist.h hiutil.h
-async.o: async.c fmacros.h async.h hiredis.h read.h sds.h net.h dict.c dict.h
-command.o: command.c command.h hiredis.h read.h sds.h adlist.h hiutil.h hiarray.h
+command.o: command.c command.h lib/hiredis/hiredis.h lib/hiredis/read.h lib/hiredis/sds.h adlist.h hiutil.h hiarray.h
 crc16.o: crc16.c hiutil.h
-dict.o: dict.c fmacros.h dict.h
 hiarray.o: hiarray.c hiarray.h hiutil.h
-hircluster.o: hircluster.c fmacros.h hircluster.h hiredis.h read.h sds.h adlist.h hiarray.h hiutil.h async.h command.h dict.c dict.h
-hiredis.o: hiredis.c fmacros.h hiredis.h read.h sds.h net.h
+hircluster.o: hircluster.c lib/hiredis/fmacros.h hircluster.h lib/hiredis/hiredis.h lib/hiredis/read.h lib/hiredis/sds.h lib/hiredis/alloc.h adlist.h hiarray.h hiutil.h lib/hiredis/async.h command.h lib/hiredis/dict.c lib/hiredis/dict.h
 hiutil.o: hiutil.c hiutil.h
-net.o: net.c fmacros.h net.h hiredis.h read.h sds.h
-read.o: read.c fmacros.h read.h sds.h
-sds.o: sds.c sds.h
-test.o: test.c fmacros.h hiredis.h read.h sds.h net.h
 
 $(DYLIBNAME): $(OBJ)
 	$(DYLIB_MAKE_CMD) $(OBJ)
@@ -125,7 +118,7 @@ hiredis-example: examples/example.c $(STLIBNAME)
 
 examples: $(EXAMPLES)
 
-hiredis-test: test.o $(STLIBNAME)
+hiredis-test: lib/hiredis/test.o $(STLIBNAME)
 
 hiredis-%: %.o $(STLIBNAME)
 	$(CC) $(REAL_CFLAGS) -o $@ $(REAL_LDFLAGS) $< $(STLIBNAME)
@@ -154,7 +147,7 @@ endif
 
 INSTALL?= cp -a
 
-$(PKGCONFNAME): hiredis.h
+$(PKGCONFNAME): lib/hiredis/hiredis.h
 	@echo "Generating $@ for pkgconfig..."
 	@echo prefix=$(PREFIX) > $@
 	@echo exec_prefix=\$${prefix} >> $@
@@ -169,7 +162,7 @@ $(PKGCONFNAME): hiredis.h
 
 install: $(DYLIBNAME) $(STLIBNAME) $(PKGCONFNAME)
 	mkdir -p $(INSTALL_INCLUDE_PATH) $(INSTALL_LIBRARY_PATH)
-	$(INSTALL) hiredis.h async.h read.h sds.h hiutil.h hiarray.h dict.h dict.c adlist.h fmacros.h hircluster.h adapters $(INSTALL_INCLUDE_PATH)
+	$(INSTALL) lib/hiredis/hiredis.h async.h read.h sds.h hiutil.h hiarray.h dict.h dict.c adlist.h fmacros.h hircluster.h adapters $(INSTALL_INCLUDE_PATH)
 	$(INSTALL) $(DYLIBNAME) $(INSTALL_LIBRARY_PATH)/$(DYLIB_MINOR_NAME)
 	cd $(INSTALL_LIBRARY_PATH) && ln -sf $(DYLIB_MINOR_NAME) $(DYLIB_MAJOR_NAME)
 	cd $(INSTALL_LIBRARY_PATH) && ln -sf $(DYLIB_MAJOR_NAME) $(DYLIBNAME)

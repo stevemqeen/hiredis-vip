@@ -2,8 +2,8 @@
 #ifndef __HIRCLUSTER_H
 #define __HIRCLUSTER_H
 
-#include "hiredis.h"
-#include "async.h"
+#include "lib/hiredis/hiredis.h"
+#include "lib/hiredis/async.h"
 
 #define HIREDIS_VIP_MAJOR 1
 #define HIREDIS_VIP_MINOR 0
@@ -29,6 +29,40 @@
   * table by 'cluster slots' command. Default   
   * is 'cluster nodes' command.*/
 #define HIRCLUSTER_FLAG_ROUTE_USE_SLOTS     0x4000
+
+
+// hiredis-vip read.h defines, moved here
+#define REDIS_ERR_CLUSTER_TOO_MANY_REDIRECT 7
+#define REDIS_ERROR_MOVED 			"MOVED"
+#define REDIS_ERROR_ASK 			"ASK"
+#define REDIS_ERROR_TRYAGAIN 		"TRYAGAIN"
+#define REDIS_ERROR_CROSSSLOT 		"CROSSSLOT"
+#define REDIS_ERROR_CLUSTERDOWN 	"CLUSTERDOWN"
+#define REDIS_STATUS_OK 			"OK"
+
+/* strerror_r has two completely different prototypes and behaviors
+ * depending on system issues, so we need to operate on the error buffer
+ * differently depending on which strerror_r we're using. */
+#ifndef _GNU_SOURCE
+/* "regular" POSIX strerror_r that does the right thing. */
+#define __redis_strerror_r(errno, buf, len)                                    \
+    do {                                                                       \
+        strerror_r((errno), (buf), (len));                                     \
+    } while (0)
+#else
+/* "bad" GNU strerror_r we need to clean up after. */
+#define __redis_strerror_r(errno, buf, len)                                    \
+    do {                                                                       \
+        char *err_str = strerror_r((errno), (buf), (len));                     \
+        /* If return value _isn't_ the start of the buffer we passed in,       \
+         * then GNU strerror_r returned an internal static buffer and we       \
+         * need to copy the result into our private buffer. */                 \
+        if (err_str != (buf)) {                                                \
+            buf[(len)] = '\0';                                                 \
+            strncat((buf), err_str, ((len) - 1));                              \
+        }                                                                      \
+    } while (0)
+#endif
 
 struct dict;
 struct hilist;
