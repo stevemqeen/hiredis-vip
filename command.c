@@ -39,7 +39,6 @@ redis_arg0(struct cmd *r)
     case CMD_REQ_REDIS_EXISTS:
     case CMD_REQ_REDIS_PERSIST:
     case CMD_REQ_REDIS_PTTL:
-    case CMD_REQ_REDIS_SORT:
     case CMD_REQ_REDIS_TTL:
     case CMD_REQ_REDIS_TYPE:
     case CMD_REQ_REDIS_DUMP:
@@ -193,7 +192,7 @@ redis_argn(struct cmd *r)
     case CMD_REQ_REDIS_HMGET:
     case CMD_REQ_REDIS_HMSET:
     case CMD_REQ_REDIS_HSCAN:
-
+    case CMD_REQ_REDIS_SORT:
     case CMD_REQ_REDIS_LPUSH:
     case CMD_REQ_REDIS_RPUSH:
 
