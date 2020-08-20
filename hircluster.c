@@ -2612,8 +2612,7 @@ static int command_pre_fragment(redisClusterContext *cc,
         __redisClusterSetError(cc,REDIS_ERR_OOM,"Out of memory");
         goto done;
     }
-    
-    
+
     for(i = 0; i < key_count; i ++)
     {
         kp = hiarray_get(command->keys, i);
@@ -2994,7 +2993,6 @@ static int command_format_by_slot(redisClusterContext *cc,
         goto done;
     }
 
-    
     redis_parse_cmd(command);
     if(command->result == CMD_PARSE_ENOMEM)
     {
@@ -3009,7 +3007,13 @@ static int command_format_by_slot(redisClusterContext *cc,
 
     key_count = hiarray_n(command->keys);
 
-    if(key_count <= 0)
+    if(command->type == CMD_REQ_REDIS_PING || command->type == CMD_REQ_REDIS_INFO)
+    {
+        slot_num = 1;
+        command->slot_num = slot_num;
+        goto done;
+    }
+    else if(key_count <= 0)
     {
         __redisClusterSetError(cc, REDIS_ERR_OTHER, "No keys in command(must have keys for redis cluster mode)");
         goto done;
@@ -3024,7 +3028,6 @@ static int command_format_by_slot(redisClusterContext *cc,
     }
 
     slot_num = command_pre_fragment(cc, command, commands);
-
 done:
     
     return slot_num;

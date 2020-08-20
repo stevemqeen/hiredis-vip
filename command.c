@@ -64,6 +64,7 @@ redis_arg0(struct cmd *r)
     case CMD_REQ_REDIS_ZCARD:
     case CMD_REQ_REDIS_PFCOUNT:
     case CMD_REQ_REDIS_AUTH:
+    case CMD_REQ_REDIS_INFO:
         return 1;
 
     default:
@@ -600,6 +601,12 @@ redis_parse_cmd(struct cmd *r)
 
                 if (str4icmp(m, 'p', 'i', 'n', 'g')) {
                     r->type = CMD_REQ_REDIS_PING;
+                    r->noforward = 1;
+                    break;
+                }
+
+                if (str4icmp(m, 'i', 'n', 'f', 'o')) {
+                    r->type = CMD_REQ_REDIS_INFO;
                     r->noforward = 1;
                     break;
                 }

@@ -125,6 +125,7 @@ typedef enum cmd_parse_result {
     ACTION( RSP_REDIS_INTEGER )                                                                     \
     ACTION( RSP_REDIS_BULK )                                                                        \
     ACTION( RSP_REDIS_MULTIBULK )                                                                   \
+    ACTION( REQ_REDIS_INFO )                                                                        \
     ACTION( SENTINEL )                                                                              \
 
 
