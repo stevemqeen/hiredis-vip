@@ -605,7 +605,7 @@ error:
 
 static void cluster_nodes_swap_ctx(dict *nodes_f, dict *nodes_t)
 {
-    dictIterator *di;
+    dictIterator di;
     dictEntry *de_f, *de_t;
     cluster_node *node_f, *node_t;
     redisContext *c;
@@ -615,8 +615,9 @@ static void cluster_nodes_swap_ctx(dict *nodes_f, dict *nodes_t)
         return;
     }
 
-    di = dictGetIterator(nodes_t);
-    while((de_t = dictNext(di)) != NULL){
+
+	dictInitIterator(&di, nodes_t);
+    while((de_t = dictNext(&di)) != NULL){
         node_t = dictGetEntryVal(de_t);
         if(node_t == NULL){
             continue;
@@ -644,9 +645,6 @@ static void cluster_nodes_swap_ctx(dict *nodes_f, dict *nodes_t)
                 node_f->acon->data = node_f;
         }
     }
-
-    dictReleaseIterator(di);
-    
 }
 
 static int
@@ -1262,7 +1260,7 @@ cluster_update_route_by_addr(redisClusterContext *cc,
     struct hiarray *slots = NULL;
     cluster_node *master;
     cluster_slot *slot, **slot_elem;
-    dictIterator *dit = NULL;
+    dictIterator dit;
     dictEntry *den;
     listIter *lit = NULL;
     listNode *lnode;
@@ -1361,14 +1359,9 @@ cluster_update_route_by_addr(redisClusterContext *cc,
         goto error;
     }
     
-    dit = dictGetIterator(nodes);
-    if(dit == NULL){
-        __redisClusterSetError(cc,REDIS_ERR_OOM,
-            "Dict get iterator failed: out of memory");
-        goto error;
-    }
-    
-    while((den = dictNext(dit))){
+	dictInitIterator(&dit, nodes);
+
+    while((den = dictNext(&dit))){
         master = dictGetEntryVal(den);
         if(master->role != REDIS_ROLE_MASTER){
             __redisClusterSetError(cc,REDIS_ERR_OOM,
@@ -1402,8 +1395,6 @@ cluster_update_route_by_addr(redisClusterContext *cc,
 
         listReleaseIterator(lit);
     }
-
-    dictReleaseIterator(dit);
 
     hiarray_sort(slots, cluster_slot_start_cmp);
     for(j = 0; j < hiarray_n(slots); j ++){
@@ -1448,10 +1439,6 @@ cluster_update_route_by_addr(redisClusterContext *cc,
 
 error:
 
-    if(dit != NULL){
-        dictReleaseIterator(dit);
-    }
-
     if(lit != NULL){
         listReleaseIterator(lit);    
     }
@@ -1493,7 +1480,7 @@ cluster_update_route(redisClusterContext *cc)
     int ret;
     int flag_err_not_set = 1;
     cluster_node *node;
-    dictIterator *it;
+    dictIterator it;
     dictEntry *de;
     
     if(cc == NULL)
@@ -1522,8 +1509,8 @@ cluster_update_route(redisClusterContext *cc)
         return REDIS_ERR;
     }
 
-    it = dictGetIterator(cc->nodes);
-    while ((de = dictNext(it)) != NULL)
+	dictInitIterator(&it, cc->nodes);
+    while ((de = dictNext(&it)) != NULL)
     {
         node = dictGetEntryVal(de);
         if(node == NULL || node->host == NULL || node->port < 0)
@@ -1539,15 +1526,12 @@ cluster_update_route(redisClusterContext *cc)
                 cc->err = 0;
                 memset(cc->errstr, '\0', strlen(cc->errstr));
             }
-            
-            dictReleaseIterator(it);
+
             return REDIS_OK;
         }
 
         flag_err_not_set = 0;
     }
-    
-    dictReleaseIterator(it);
 
     if(flag_err_not_set)
     {
@@ -1965,12 +1949,12 @@ int redisClusterSetOptionTimeout(redisClusterContext *cc, const struct timeval t
         if (cc->nodes && dictSize(cc->nodes) > 0)
         {
             dictEntry *de;
-            dictIterator *di;
+            dictIterator di;
             cluster_node *node;
 
-            di = dictGetIterator(cc->nodes);
+			dictInitIterator(&di, cc->nodes);
 
-            while ((de = dictNext(di)))
+            while ((de = dictNext(&di)))
             {
                 node = dictGetEntryVal(de);
                 if (node->con && node->con->flags&REDIS_CONNECTED && node->con->err == 0)
@@ -1997,8 +1981,6 @@ int redisClusterSetOptionTimeout(redisClusterContext *cc, const struct timeval t
                     listReleaseIterator(li);
                 }
             }
-
-            dictReleaseIterator(di);
         }
     }
     
@@ -2092,7 +2074,7 @@ static cluster_node *node_get_by_table(redisClusterContext *cc, uint32_t slot_nu
 
 static cluster_node *node_get_witch_connected(redisClusterContext *cc)
 {
-    dictIterator *di;
+    dictIterator di;
     dictEntry *de;
     struct cluster_node *node;
     redisContext *c = NULL;
@@ -2103,8 +2085,8 @@ static cluster_node *node_get_witch_connected(redisClusterContext *cc)
         return NULL;
     }
 
-    di = dictGetIterator(cc->nodes);
-    while((de = dictNext(di)) != NULL)
+	dictInitIterator(&di, cc->nodes);
+    while((de = dictNext(&di)) != NULL)
     {
         node = dictGetEntryVal(de);
         if(node == NULL)
@@ -2124,9 +2106,6 @@ static cluster_node *node_get_witch_connected(redisClusterContext *cc)
         {
             freeReplyObject(reply);
             reply = NULL;
-            
-            dictReleaseIterator(di);            
-        
             return node;
         }
         else if(reply != NULL)
@@ -2135,8 +2114,6 @@ static cluster_node *node_get_witch_connected(redisClusterContext *cc)
             reply = NULL;
         }
     }
-
-    dictReleaseIterator(di);
 
     return NULL;
 }
@@ -3421,7 +3398,7 @@ int redisClusterAppendCommandArgv(redisClusterContext *cc,
 
 static int redisCLusterSendAll(redisClusterContext *cc)
 {
-    dictIterator *di;
+    dictIterator di;
     dictEntry *de;
     struct cluster_node *node;
     redisContext *c = NULL;
@@ -3432,8 +3409,8 @@ static int redisCLusterSendAll(redisClusterContext *cc)
         return REDIS_ERR;
     }
 
-    di = dictGetIterator(cc->nodes);
-    while((de = dictNext(di)) != NULL)
+	dictInitIterator(&di, cc->nodes);
+    while((de = dictNext(&di)) != NULL)
     {
         node = dictGetEntryVal(de);
         if(node == NULL)
@@ -3452,21 +3429,18 @@ static int redisCLusterSendAll(redisClusterContext *cc)
             do {
                 if (redisBufferWrite(c,&wdone) == REDIS_ERR)
                 {
-                    dictReleaseIterator(di);
                     return REDIS_ERR;
                 }
             } while (!wdone);
         }
     }
-    
-    dictReleaseIterator(di);
 
     return REDIS_OK;
 }
 
 static int redisCLusterClearAll(redisClusterContext *cc)
 {
-    dictIterator *di;
+    dictIterator di;
     dictEntry *de;
     struct cluster_node *node;
     redisContext *c = NULL;
@@ -3483,8 +3457,9 @@ static int redisCLusterClearAll(redisClusterContext *cc)
     if (cc->nodes == NULL) {
         return REDIS_ERR;
     }
-    di = dictGetIterator(cc->nodes);
-    while((de = dictNext(di)) != NULL)
+
+	dictInitIterator(&di, cc->nodes);
+    while((de = dictNext(&di)) != NULL)
     {
         node = dictGetEntryVal(de);
         if(node == NULL)
@@ -3501,9 +3476,7 @@ static int redisCLusterClearAll(redisClusterContext *cc)
         redisFree(c);
         node->con = NULL;
     }
-    
-    dictReleaseIterator(di);
-    
+
     return REDIS_OK;
 }
 
@@ -4331,7 +4304,7 @@ void redisClusterAsyncDisconnect(redisClusterAsyncContext *acc) {
 
     redisClusterContext *cc;
     redisAsyncContext *ac;
-    dictIterator *di;
+    dictIterator di;
     dictEntry *de;
     dict *nodes;
     struct cluster_node *node;
@@ -4349,10 +4322,10 @@ void redisClusterAsyncDisconnect(redisClusterAsyncContext *acc) {
     {
         return;
     }
-    
-    di = dictGetIterator(nodes);
 
-    while((de = dictNext(di)) != NULL) 
+	dictInitIterator(&di, nodes);
+
+    while((de = dictNext(&di)) != NULL) 
     {
         node = dictGetEntryVal(de);
 
